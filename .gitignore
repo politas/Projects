@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Ghostwriter backups
+*.backup
+
 # Object files
 *.o
 *.ko
