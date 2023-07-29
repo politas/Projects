@@ -1,14 +1,13 @@
 # Clever Clock
 ![IMG_20210413_090921__01_crop](https://github.com/politas/Projects/assets/2109967/183e2c67-d30d-4a14-a87a-eef30bd32683)
 
-This project is put together using three "Feather" boards from Adafruit, in a custom #D printed casealong with a silvered perspex window cut down from an old clock radio.
+This project is put together using three "Feather" boards from Adafruit, in a custom 3D printed case along with a silvered perspex window cut down from an old clock radio.
 
  - [HUZZAH32 - ESP32 Feather](https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/overview)
  - [Adafruit 0.56" 4-Digit 7-Segment FeatherWing Display](https://www.adafruit.com/product/3108)
  - [FeatherWing Proto](https://www.adafruit.com/product/2884)
 
-![IMG_20210409_073642__01](https://github.com/politas/Projects/assets/2109967/cc118037-3582-4e9d-8e93-2923b2049d96)
-
+![Clever Clock internals](https://github.com/politas/Projects/assets/2109967/6f45ad7e-7451-450b-9384-0488bc662a1e)
  
 It also uses an IR distance sensor I had lying around, which is connected to power along with a pullup resister on the protoboard in between the HUZZAH32 and the Featherwing display, with the data pin connected to PIN34 on the ESP32.
 
