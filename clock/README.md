@@ -2,7 +2,7 @@
 
 This project is put together using three "Feather" boards from Adafruit.
 
- - [HUZZAH32 - ESP32 FeatherHUZZAH32 - ESP32 Feather](https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/overview)
+ - [HUZZAH32 - ESP32 Feather](https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/overview)
  - [Adafruit 0.56" 4-Digit 7-Segment FeatherWing Display](https://www.adafruit.com/product/3108)
  - [FeatherWing Proto](https://www.adafruit.com/product/2884)
  
