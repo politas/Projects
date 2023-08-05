@@ -1,8 +1,9 @@
 import time
 from math import ceil, floor
 
-from machine import SPI, Pin
+from machine import SPI, I2C, Pin
 import sdcard, uos
+import urtc
 
 from PiicoDev_SSD1306 import *
 from PiicoDev_BME280 import PiicoDev_BME280
@@ -18,14 +19,10 @@ CS = 17
 
 FNAME = '/sd/bme280-readings.csv'
 
-def ftime():
-    year, month, mday, hour, minute, second, weekday, yearday = time.localtime()
+def ftime(rtc):
+    year, month, mday, weekday, hour, minute, second, millisecond = rtc.datetime()
     return f"{year:04}-{month:02}-{mday:02} {hour:02}:{minute:02}:{second:02}"
-
-def fdate():
-    year, month, mday, hour, minute, second, weekday, yearday = time.localtime()
-    return f"{year:04}-{month:02}-{mday:02}"
-
+   
 class TemperatureWindow(object):
     """Creates a list of temperature readings with a defined size"""
     def __init__(self, size):
@@ -71,11 +68,11 @@ def create_graph(display,max_value,min_value):
     display.show()
     return graph
 
-def write_reading(reading):
+def write_reading(rtc,reading):
     """Appends a time-stamped data reading to a CSV file on the SDCard."""
     temperature, pressure, humidity = reading
     with open (FNAME, "a") as f:
-        f.write(ftime())
+        f.write(ftime(rtc))
         f.write(",")
         f.write(str(temperature))
         f.write(",")
@@ -85,15 +82,15 @@ def write_reading(reading):
         f.write('\n') # A new line
         f.flush() # Force writing of buffered data to the SD card
 
-def read_display_store(display,graph,readings,sensor):
+def read_display_store(rtc,display,graph,readings,sensor):
     """Core loop continues taking readings while temperature remains within current graph boundaries."""
     max_value = readings.maxim()
     min_value = readings.minim()
     while (readings.maxim() == max_value) and (readings.minim() == min_value):
         reading = sensor.values()
         readings.add(reading[0])
-        write_reading(reading)
-        print(f"{ftime()} - {readings.last()}")
+        write_reading(rtc,reading)
+        print(f"{ftime(rtc)} - {readings.last()}")
         display.fill_rect(36,1,90,62,0)
         display.updateGraph2D(graph,readings.last())
         display.fill_rect(0,28,35,10,1) # white box for current reading display
@@ -117,12 +114,17 @@ def main():
     sd = sdcard.SDCard(spi, cs)
     uos.mount(sd, '/sd')
     print(uos.listdir('/sd'))
+    
+    # Initialise Adafruit PiCowbell RTC
+    i2c = I2C(0,scl=Pin(SCL), sda=Pin(SDA))
+    rtc = urtc.PCF8523(i2c)
 
     # Initialise PiicoDev Display and Pimoroni BME280 sensor using Piicodev modules
     display = create_PiicoDev_SSD1306(bus=0,sda=machine.Pin(SDA),scl=machine.Pin(SCL))
     sensor = PiicoDev_BME280(bus=0,sda=machine.Pin(SDA),scl=machine.Pin(SCL),address=0x76)
     
-    print(ftime())
+    print(ftime(rtc))
+    
     # Throw away initial reading from BME280, which is always wrong
     _ = sensor.values()
     time.sleep(1.0)
@@ -135,7 +137,7 @@ def main():
     
     graph = create_graph(display,readings.maxim(),readings.minim())
     while True:
-        read_display_store(display,graph,readings,sensor)
+        read_display_store(rtc,display,graph,readings,sensor)
         graph = create_graph(display,readings.maxim(),readings.minim())
         graph_old_values(display,graph,readings)
 
