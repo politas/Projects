@@ -1,0 +1,14 @@
+[Unit]
+Description=Watch for Screensaver activation and set Office presence
+After=network.target
+
+[Service]
+WorkingDirectory=/home/user/bin/watch_screensaver
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/usr/bin/python /home/user/bin/watch_screensaver/watch_screensaver.py
+
+[Install]
+WantedBy=default.target
+
