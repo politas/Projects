@@ -22,13 +22,13 @@ def signal_handler(*args, **kwargs):
 		sys.stdout.flush()
 		url = f"{base}/services/input_boolean/turn_off"
 		response = post(url, headers=headers, json=data)
-		if (response.status_code == 200) then 
+        if (response.status_code == 200):
 			print("screensaverwatch: Set presence toggle to 'Off'")
 	else:
 		sys.stdout.flush()
 		url = f"{base}/services/input_boolean/turn_on"
 		response = post(url, headers=headers, json=data)
-		if (response.status_code == 200) then 
+        if (response.status_code == 200):
 			print("screensaverwatch: Set presence toggle to 'On'")
 
 def main():
