@@ -66,35 +66,27 @@ sensor:
     entity_id: sensor.clever_clock_time
     on_value:
       then:
-        - lambda: |-
-              static Adafruit_7segment matrix = Adafruit_7segment();
-              static int brightness = floor(id(display_brightness).state);
-              static int valX = int(x);
-              matrix.begin(0x70);
-              matrix.setBrightness(brightness);
-              matrix.print(valX, DEC);
-              # Pad missing digits with zeros. The last one is just for midnight!
-              # writeDigitNum pushes existing numbers to the left.
-              if (valX < 1000) { matrix.writeDigitNum(0, 0); }
-              if (valX < 100) { matrix.writeDigitNum(1, 0); }
-              if (valX < 10) { matrix.writeDigitNum(2, 0); }
-              if (valX < 1) { matrix.writeDigitNum(3, 0); }
-              matrix.drawColon(1);
-              matrix.writeDisplay();
+        script.execute: update_display
   - platform: homeassistant
     id: display_brightness
     name: "Brightness"
     internal: True
     entity_id: input_number.clever_clock_brightness
+    on_value:
+      then:
+        script.execute: update_display
   - platform: adc
     id: range_finder
     name: "Range Voltage"
     internal: True
     pin: 34
-    update_interval: .1s
+    update_interval: .05s
     attenuation: auto
     accuracy_decimals: 1
     filters:
+      - sliding_window_moving_average: 
+          window_size: 2
+          send_every: 2
       - delta: 0.2
 
 binary_sensor:
@@ -103,3 +95,20 @@ binary_sensor:
     lambda: |-
       if (id(range_finder).state >= 1) { return true; }
       return false;
+
+script:
+  - id: update_display
+    then:
+      lambda: |-
+        static Adafruit_7segment matrix = Adafruit_7segment();
+        int brightness = floor(id(display_brightness).state);
+        int valX = int(id(display_time).state);
+        matrix.begin(0x70);
+        matrix.setBrightness(brightness);
+        matrix.print(valX, DEC);
+        if (valX < 1000) { matrix.writeDigitNum(0, 0); }
+        if (valX < 100) { matrix.writeDigitNum(1, 0); }
+        if (valX < 10) { matrix.writeDigitNum(2, 0); }
+        if (valX < 1) { matrix.writeDigitNum(3, 0); }
+        matrix.drawColon(1);
+        matrix.writeDisplay();
