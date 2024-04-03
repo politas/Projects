@@ -1,0 +1,105 @@
+esphome:
+  name: clever-clock
+  friendly_name: "Clever Clock"
+  includes: 
+    # https://github.com/adafruit/Adafruit_LED_Backpack
+    - include/Adafruit_LED_Backpack_Library/Adafruit_LEDBackpack.h
+    - include/Adafruit_LED_Backpack_Library/Adafruit_LEDBackpack.cpp
+    # https://github.com/adafruit/Adafruit-GFX-Library
+    - include/Adafruit_GFX_Library/Adafruit_GFX.h
+    - include/Adafruit_GFX_Library/Adafruit_GFX.cpp
+    - include/Adafruit_GFX_Library/gfxfont.h
+    - include/Adafruit_GFX_Library/glcdfont.c
+    # https://github.com/adafruit/Adafruit_BusIO
+    - include/Adafruit_BusIO/Adafruit_I2CDevice.h
+    - include/Adafruit_BusIO/Adafruit_I2CDevice.cpp
+  libraries:
+    - "SPI"
+
+esp32:
+  board: esp32dev
+
+# Enable logging
+logger:
+  level: WARN
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "KKKKKKKKKKKKKKKKKKKKK"
+
+ota:
+  password: "PPPPPPPPPPPPPPPPPPPPPP"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: .local
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Clever Clock Fallback Hotspot"
+    password: !secret wifi_password
+
+web_server:
+  port: 80
+    
+captive_portal:
+
+i2c:
+  scl: 22
+  sda: 23
+  frequency: 50000
+  scan: false
+
+switch: # controls the LED on the Huzzah (to find it)
+  - platform: gpio
+    name: "Huzzah LED"
+    pin:
+      number: 13
+      inverted: no
+   
+sensor:
+  - platform: homeassistant
+    id: display_time
+    internal: True
+    entity_id: sensor.clever_clock_time
+    on_value:
+      then:
+        - lambda: |-
+              static Adafruit_7segment matrix = Adafruit_7segment();
+              static int brightness = floor(id(display_brightness).state);
+              static int valX = int(x);
+              matrix.begin(0x70);
+              matrix.setBrightness(brightness);
+              matrix.print(valX, DEC);
+              # Pad missing digits with zeros. The last one is just for midnight!
+              # writeDigitNum pushes existing numbers to the left.
+              if (valX < 1000) { matrix.writeDigitNum(0, 0); }
+              if (valX < 100) { matrix.writeDigitNum(1, 0); }
+              if (valX < 10) { matrix.writeDigitNum(2, 0); }
+              if (valX < 1) { matrix.writeDigitNum(3, 0); }
+              matrix.drawColon(1);
+              matrix.writeDisplay();
+  - platform: homeassistant
+    id: display_brightness
+    name: "Brightness"
+    internal: True
+    entity_id: input_number.clever_clock_brightness
+  - platform: adc
+    id: range_finder
+    name: "Range Voltage"
+    internal: True
+    pin: 34
+    update_interval: .1s
+    attenuation: auto
+    accuracy_decimals: 1
+    filters:
+      - delta: 0.2
+
+binary_sensor:
+  - platform: template
+    name: "Presence"
+    lambda: |-
+      if (id(range_finder).state >= 1) { return true; }
+      return false;
