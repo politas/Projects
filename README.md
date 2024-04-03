@@ -4,7 +4,9 @@ Code used for small electronics projects
 Licensed under the [Unlicense](./LICENSE), except where specified in project subfolder.
 
 ## Clever Clock
-[See clock README](./clock/README.md)
+- [clock README - Openhab version](./clock_openhab/README.md)
+- **NEW!** [clock README - ESPHome version](./clock_esphome/README.md)
+
 
 ## Temperature data logger
-[See TempLogger README](./TempLogger/README.md)
+[TempLogger README](./TempLogger/README.md)
